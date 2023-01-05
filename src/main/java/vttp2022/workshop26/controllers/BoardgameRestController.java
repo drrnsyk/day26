@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import vttp2022.workshop26.models.Comment;
 import vttp2022.workshop26.models.Game;
 import vttp2022.workshop26.models.Games;
 import vttp2022.workshop26.services.BoardgameService;
@@ -103,5 +106,37 @@ public class BoardgameRestController {
             .status(HttpStatus.OK)
             .contentType(MediaType.APPLICATION_JSON)
             .body(jo.toString());
+    }
+
+    /*
+        remember to create the index
+        db.comments.createIndex({c_text: "text"})
+
+        postman:
+        localhost:8080/api/comment?keyword=players -4
+        ** need to leave a space because the code split by " "
+    */
+    @GetMapping(path = "/comment")
+    public ResponseEntity<String> getSearchCommentByText(@RequestParam String keyword, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer offset) {
+
+        if (null == limit)
+            limit = 25;
+
+        if (null == offset)
+            offset = 0;
+
+        List<Comment> listOfComments = boardgameSvc.searchCommentByText(keyword, limit, offset);
+        JsonArray jsonArr = null;
+        JsonArrayBuilder arrBuilder = Json.createArrayBuilder();
+        
+        for (Comment c : listOfComments)
+            arrBuilder.add(c.toJSON());
+
+        jsonArr = arrBuilder.build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(jsonArr.toString());
     }
 }
